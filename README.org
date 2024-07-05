@@ -1,0 +1,15 @@
+Diarrea waterfall 1
+
+https://api.arcade.academy/en/latest/examples/platform_tutorial/index.html#platformer-tutorial
+
+** install and open a window
+
+https://api.arcade.academy/en/latest/examples/platform_tutorial/step_01.html
+
+pip install arcade
+
+use system python (not conda)
+
+** draw sprites
+
+https://api.arcade.academy/en/latest/examples/platform_tutorial/step_02.html
