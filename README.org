@@ -13,3 +13,13 @@ use system python (not conda)
 ** draw sprites
 
 https://api.arcade.academy/en/latest/examples/platform_tutorial/step_02.html
+
+** draw scene
+
+Scene is a group of sprite lists https://api.arcade.academy/en/latest/examples/platform_tutorial/step_03.html
+
+** movement
+
+physics engine controls what movements can be made https://api.arcade.academy/en/latest/examples/platform_tutorial/step_04.html
+
+sprite attribute change_y and x controls movement

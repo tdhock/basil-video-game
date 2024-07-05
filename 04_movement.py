@@ -4,7 +4,8 @@ Platformer Game
 import arcade
 
 # Constants
-PLAYER_MOVEMENT_SPEED = 5
+PLAYER_MOVEMENT_SPEED = 1
+SAW_MOVEMENT_SPEED = 2
 PIXELS_PER_TILE = 50
 SCREEN_SIZE_TILES = (20, 10)
 SCREEN_WIDTH_TILES, SCREEN_HEIGHT_TILES = SCREEN_SIZE_TILES
@@ -15,12 +16,15 @@ SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS = SCREEN_SIZE_PIXELS
 
 SCREEN_TITLE = "Platformer"
 HALF = PIXELS_PER_TILE/2
-
+def tile2pixel(tile):
+    return HALF+tile*PIXELS_PER_TILE
+def pixel2tile(pixel):
+    return (pixel-HALF)/PIXELS_PER_TILE
 def MySprite(img, x, y):
     """ x and y are in units of tiles from bottom left """
     sprite = arcade.Sprite(img)
-    sprite.center_x = HALF+x*PIXELS_PER_TILE
-    sprite.center_y = HALF+y*PIXELS_PER_TILE
+    sprite.center_x = tile2pixel(x)
+    sprite.center_y = tile2pixel(y)
     return sprite
 
 class MyGame(arcade.Window):
@@ -43,6 +47,7 @@ class MyGame(arcade.Window):
         """Set up the game here. Call this function to restart the game."""
         self.scene = arcade.Scene()
         self.scene.add_sprite_list("Player")
+        self.scene.add_sprite_list("Saw")
         self.scene.add_sprite_list("Blocks", use_spatial_hash=True)
         self.player_sprite = MySprite("knife_shredder.png",1,1)
         self.scene.add_sprite("Player", self.player_sprite)
@@ -52,6 +57,7 @@ class MyGame(arcade.Window):
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Blocks")
         )
+        self.saw_physics = None
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
         if key == arcade.key.UP or key == arcade.key.W:
@@ -62,9 +68,19 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.B:
+            x = pixel2tile(self.player_sprite.center_x)+1
+            y = pixel2tile(self.player_sprite.center_y)
+            saw_sprite = MySprite("flying_saw.png",x,y)
+            saw_sprite.change_x = SAW_MOVEMENT_SPEED
+            saw_sprite.change_y = SAW_MOVEMENT_SPEED
+            self.scene.add_sprite("saw", saw_sprite)
+            self.saw_physics = arcade.PhysicsEngineSimple(
+                saw_sprite, self.scene.get_sprite_list("Blocks")
+            )
+            print(x)
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key."""
-
         if key == arcade.key.UP or key == arcade.key.W:
             self.player_sprite.change_y = 0
         elif key == arcade.key.DOWN or key == arcade.key.S:
@@ -77,6 +93,8 @@ class MyGame(arcade.Window):
         """Movement and game logic"""
         # Move the player with the physics engine
         self.physics_engine.update()
+        if self.saw_physics is not None:
+            self.saw_physics.update()
     def on_draw(self):
         """Render the screen."""
         self.clear()
