@@ -14,6 +14,8 @@ use system python (not conda)
 
 https://api.arcade.academy/en/latest/examples/platform_tutorial/step_02.html
 
+all tiles are 50x50
+
 ** draw scene
 
 Scene is a group of sprite lists https://api.arcade.academy/en/latest/examples/platform_tutorial/step_03.html

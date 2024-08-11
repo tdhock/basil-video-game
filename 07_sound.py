@@ -7,13 +7,16 @@ import pdb
 # Constants
 PLAYER_MOVEMENT_SPEED = 1
 SAW_MOVEMENT_SPEED = 4
-PIXELS_PER_TILE = 50
+PIXELS_PER_TILE = 50 #so images are 50x50
 SCREEN_SIZE_TILES = (20, 10)
 SCREEN_WIDTH_TILES, SCREEN_HEIGHT_TILES = SCREEN_SIZE_TILES
 SCREEN_SIZE_PIXELS = tuple([
     tiles*PIXELS_PER_TILE for tiles in SCREEN_SIZE_TILES
 ])
 SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS = SCREEN_SIZE_PIXELS
+
+GRAVITY = 1
+PLAYER_JUMP_SPEED = 20
 
 SCREEN_TITLE = "Platformer"
 HALF = PIXELS_PER_TILE/2
@@ -41,7 +44,7 @@ class MyGame(arcade.Window):
         # These are 'lists' that keep track of our sprites. Each sprite should
         # go into a list.
         self.scene = None
-
+        self.shew = arcade.load_sound("shew.wav")
         arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
 
     def setup(self):
@@ -55,6 +58,9 @@ class MyGame(arcade.Window):
         for x in range(SCREEN_WIDTH_TILES):
             self.scene.add_sprite("Blocks", MySprite("block.png",x,0))
         # Create the 'physics engine'
+        self.physics_engine = arcade.PhysicsEnginePlatformer(
+            self.player_sprite, gravity_constant=GRAVITY, walls=self.scene["Walls"]
+        )        
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Blocks")
         )
@@ -79,6 +85,7 @@ class MyGame(arcade.Window):
             self.saw_physics = arcade.PhysicsEngineSimple(
                 self.saw_sprite, self.scene.get_sprite_list("Blocks")
             )
+            arcade.play_sound(self.shew)
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key."""
         if key == arcade.key.UP or key == arcade.key.W:
