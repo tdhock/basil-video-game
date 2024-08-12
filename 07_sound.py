@@ -5,7 +5,7 @@ import arcade
 import pdb
 
 # Constants
-PLAYER_MOVEMENT_SPEED = 1
+PLAYER_MOVEMENT_SPEED = 2
 SAW_MOVEMENT_SPEED = 4
 PIXELS_PER_TILE = 50 #so images are 50x50
 SCREEN_SIZE_TILES = (20, 10)
@@ -57,6 +57,9 @@ class MyGame(arcade.Window):
         self.scene.add_sprite("Player", self.player_sprite)
         for x in range(SCREEN_WIDTH_TILES):
             self.scene.add_sprite("Blocks", MySprite("block.png",x,0))
+        # for x in range(5):
+        #     self.scene.add_sprite("Blocks", MySprite("block.png",x,3))
+        self.scene.add_sprite("Blocks", MySprite("block.png",6,1))
         # Create the 'physics engine'
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite, gravity_constant=GRAVITY, walls=self.scene.get_sprite_list("Blocks")
@@ -97,7 +100,6 @@ class MyGame(arcade.Window):
         # Move the player with the physics engine
         self.physics_engine.update()
         if self.saw_physics is not None:
-            print(self.saw_sprite.position)
             self.saw_physics.update()
     def on_draw(self):
         """Render the screen."""
