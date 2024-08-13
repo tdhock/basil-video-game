@@ -59,7 +59,7 @@ class MyGame(arcade.Window):
             self.scene.add_sprite("Blocks", MySprite("block.png",x,0))
         # for x in range(5):
         #     self.scene.add_sprite("Blocks", MySprite("block.png",x,3))
-        self.scene.add_sprite("Blocks", MySprite("block.png",6,1))
+        self.scene.add_sprite("Blocks", MySprite("brown_box.jpg",6,1))
         # Create the 'physics engine'
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite, gravity_constant=GRAVITY, walls=self.scene.get_sprite_list("Blocks")
