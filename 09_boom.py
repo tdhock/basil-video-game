@@ -1,0 +1,149 @@
+"""
+Platformer Game
+"""
+import arcade
+import pdb
+
+# Constants
+PLAYER_MOVEMENT_SPEED = 2
+SAW_MOVEMENT_SPEED = 4
+PIXELS_PER_TILE = 50 #so images are 50x50
+SCREEN_SIZE_TILES = (20, 10)
+SCREEN_WIDTH_TILES, SCREEN_HEIGHT_TILES = SCREEN_SIZE_TILES
+SCREEN_SIZE_PIXELS = tuple([
+    tiles*PIXELS_PER_TILE for tiles in SCREEN_SIZE_TILES
+])
+SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS = SCREEN_SIZE_PIXELS
+
+GRAVITY = 1
+PLAYER_JUMP_SPEED = 20
+
+SCREEN_TITLE = "Platformer"
+HALF = PIXELS_PER_TILE/2
+def tile2pixel(tile):
+    return HALF+tile*PIXELS_PER_TILE
+def pixel2tile(pixel):
+    return (pixel-HALF)/PIXELS_PER_TILE
+def ASprite(img, x, y):
+    """ x and y are in units of pixels """
+    sprite = arcade.Sprite(img)
+    sprite.center_x = x
+    sprite.center_y = y
+    return sprite
+def MySprite(img, x, y):
+    """ x and y are in units of tiles from bottom left """
+    return ASprite(img, tile2pixel(x), tile2pixel(y))
+
+class MyGame(arcade.Window):
+    """
+    Main application class.
+    """
+
+    def __init__(self):
+
+        # Call the parent class and set up the window
+        super().__init__(SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS, SCREEN_TITLE)
+
+        # These are 'lists' that keep track of our sprites. Each sprite should
+        # go into a list.
+        self.scene = None
+        self.shew = arcade.load_sound("shew.wav")
+        self.krak = arcade.load_sound("krak.wav")
+        arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
+
+    def setup(self):
+        """Set up the game here. Call this function to restart the game."""
+        self.scene = arcade.Scene()
+        self.scene.add_sprite_list("Player")
+        self.scene.add_sprite_list("Saw")
+        self.scene.add_sprite_list("Boom")
+        self.scene.add_sprite_list("Blocks", use_spatial_hash=True)
+        self.player_sprite = MySprite("knife_shredder.png",1,1)
+        self.scene.add_sprite("Player", self.player_sprite)
+        for x in range(SCREEN_WIDTH_TILES):
+            self.scene.add_sprite("Blocks", MySprite("block.png",x,0))
+        # for x in range(5):
+        #     self.scene.add_sprite("Blocks", MySprite("block.png",x,3))
+        self.scene.add_sprite("Blocks", MySprite("brown_box.jpg",6,1))
+        # Create the 'physics engine'
+        self.physics_engine = arcade.PhysicsEnginePlatformer(
+            self.player_sprite, gravity_constant=GRAVITY, walls=self.scene.get_sprite_list("Blocks")
+        )
+        #self.scene.
+        self.saw_physics_list = []
+        self.boom_list = []
+    def on_key_press(self, key, modifiers):
+        """Called whenever a key is pressed."""
+        if key == arcade.key.UP or key == arcade.key.W:
+            if self.physics_engine.can_jump():
+                self.player_sprite.change_y = PLAYER_JUMP_SPEED            
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.B:
+            x = pixel2tile(self.player_sprite.center_x)+1
+            y = pixel2tile(self.player_sprite.center_y)
+            saw_sprite = MySprite("flying_saw.png",x,y)
+            saw_sprite.change_x = SAW_MOVEMENT_SPEED
+            #self.saw_sprite.change_y = SAW_MOVEMENT_SPEED
+            self.scene.add_sprite("Saw", saw_sprite)
+            self.saw_physics_list.append(arcade.PhysicsEngineSimple(
+                saw_sprite, self.scene.get_sprite_list("Blocks")
+            ))
+            arcade.play_sound(self.shew)
+    def on_key_release(self, key, modifiers):
+        """Called when the user releases a key."""
+        if key == arcade.key.UP or key == arcade.key.W:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            self.player_sprite.change_x = 0
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            self.player_sprite.change_x = 0
+    def on_update(self, delta_time):
+        """Movement and game logic"""
+        # Move the player with the physics engine
+        #self.scene.update()
+        self.physics_engine.update()
+        to_remove = []
+        #print(len(self.saw_physics_list))
+        for saw_number, saw_physics in enumerate(self.saw_physics_list):
+            saw_physics.player_sprite.last_position = saw_physics.player_sprite.position
+            saw_physics.update()
+            if saw_physics.player_sprite.last_position == saw_physics.player_sprite.position:
+                x,y = saw_physics.player_sprite.position
+                arcade.play_sound(self.krak)
+                boom_sprite = ASprite("boom.png",x,y)
+                boom_sprite.counter = 0
+                self.boom_list.append(boom_sprite)
+                self.scene.add_sprite("Boom", boom_sprite)
+                saw_physics.player_sprite.kill()
+                to_remove.insert(0, saw_number)
+        for saw_number in to_remove:
+            self.saw_physics_list.pop(saw_number)
+        to_remove = []
+        for boom_number, boom_sprite in enumerate(self.boom_list):
+            print((boom_number, boom_sprite.counter))
+            if boom_sprite.counter > 30:
+                to_remove.insert(0, boom_number)
+                boom_sprite.kill()
+            boom_sprite.counter += 1
+        for boom_number in to_remove:
+            self.boom_list.pop(boom_number)
+    def on_draw(self):
+        """Render the screen."""
+        self.clear()
+        # Draw our sprites
+        self.scene.draw()
+
+def main():
+    """Main function"""
+    window = MyGame()
+    window.setup()
+    arcade.run()
+
+
+if __name__ == "__main__":
+    main()
